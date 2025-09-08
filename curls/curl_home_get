@@ -1,0 +1,6 @@
+#!/bin/zsh
+#curl -Lvvs 'https://$FASTLY_HOST/?showkeys=1'
+echo
+echo "curl -Is 'https://$FASTLY_HOST/?showkeys=1'"
+echo 
+curl -Is "https://$FASTLY_HOST/?showkeys=1"

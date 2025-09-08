@@ -1,0 +1,7 @@
+#!/bin/zsh
+FASTLY_PATH="?lang=en&showkeys=1"
+#curl -Lvvs 'https://$FASTLY_HOST/hello$FASTLY_PATH' 
+echo
+echo "curl -Is 'https://$FASTLY_HOST/hello$FASTLY_PATH'"
+echo
+curl -Is "https://$FASTLY_HOST/hello$FASTLY_PATH"

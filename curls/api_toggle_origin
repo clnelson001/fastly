@@ -1,0 +1,45 @@
+#!/bin/zsh
+
+DICT_NAME="active_origin"
+DICT_KEY="origin"
+
+# --- Menu loop: force valid selection ---
+duration=""
+while true; do
+  echo "Please select a value for active origin:"
+  echo "1) primary (us-east-1)"
+  echo "2) fallback (us-east-2)"
+  echo "3) Skip and EXIT."
+  
+  read "?Enter the number of your choice: " choice
+
+  if [[ "$choice" == "1" ]]; then
+    new_origin="primary"
+    break
+  elif [[ "$choice" == "2" ]]; then
+    new_origin="fallback"
+    break
+  elif [[ "$choice" == "3" ]]; then
+    echo "Exiting..."
+    exit 0
+  else
+    echo "Invalid choice. Please enter 1, 2, or 3."
+  fi
+done
+
+echo ""
+echo "Using Fastly API to find Active Version and Dictionary ID for $DICT_NAME"
+
+# --- Get active version ---
+ACTIVE_VERSION=$(curl -s -H "Fastly-Key: $FASTLY_API_TOKEN" https://api.fastly.com/service/$SERVICE_ID/version | jq -r '.[] | select(.active==true) | .number')
+
+# --- Get dictionary ID ---
+DICT_ID=$(curl -s -H "Fastly-Key: $FASTLY_API_TOKEN" https://api.fastly.com/service/$SERVICE_ID/version/$ACTIVE_VERSION/dictionary | jq -r --arg name $DICT_NAME '.[] | select(.name==$name) | .id')
+echo "curl -s -H 'Fastly-Key: $FASTLY_API_TOKEN' https://api.fastly.com/service/$SERVICE_ID/version/$ACTIVE_VERSION/dictionary | jq -r --arg name $DICT_NAME '.[] | select(.name==$name) | .id'"
+echo "Active Version: $ACTIVE_VERSION, Dict_ID: $DICT_ID"
+echo ""
+echo "Updating the $DICT_NAME dictionary (id: $DICT_ID) in service version $ACTIVE_VERSION"
+echo "The new value will be $new_origin"
+
+# --- Update dictionary item ---
+curl -s -X PUT -H "Fastly-Key: $FASTLY_API_TOKEN_GLOBAL" -H "Accept: application/json" -d "item_value=$new_origin" "https://api.fastly.com/service/$SERVICE_ID/dictionary/$DICT_ID/item/$DICT_KEY" | jq

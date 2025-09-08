@@ -1,0 +1,9 @@
+#!/bin/zsh
+FASTLY_PATH="?showkeys=1"
+
+echo 
+echo "curl -I 'https://$FASTLY_HOST$FASTLY_PATH' -H 'Fastly-Debug: 1'"
+echo
+
+# warm
+curl -I "https://$FASTLY_HOST$FASTLY_PATH" -H 'Fastly-Debug: 1'

@@ -1,0 +1,52 @@
+#!/bin/zsh
+
+DICT_NAME="timers"
+DICT_KEY="demo-ttl"
+
+# --- Menu loop: force valid selection ---
+duration=""
+while true; do
+  echo "Please select a TTL value:"
+  echo "1) 30s"
+  echo "2) 1m"
+  echo "3) 2m"
+  echo "4) 5m"
+  echo "5) Exit"
+  read "?Enter the number of your choice: " choice
+
+  if [[ "$choice" == "1" ]]; then
+      duration="30s"
+    break
+  elif [[ "$choice" == "2" ]]; then
+    duration="1m"
+    break
+  elif [[ "$choice" == "3" ]]; then
+    duration="2m"
+    break
+  elif [[ "$choice" == "4" ]]; then
+    duration="5m"
+    break
+  elif [[ "$choice" == "5" ]]; then
+    echo "Exiting..."
+    exit 0
+  else
+    echo "Invalid choice. Please enter 1, 2, 3, 4 or 5."
+  fi
+done
+
+echo ""
+echo "Using Fastly API to find Active Version and Dictionary ID for $DICT_NAME"
+
+# --- Get active version ---
+ACTIVE_VERSION=$(curl -s -H "Fastly-Key: $FASTLY_API_TOKEN" https://api.fastly.com/service/$SERVICE_ID/version | jq -r '.[] | select(.active==true) | .number')
+
+# --- Get dictionary ID ---
+DICT_ID=$(curl -s -H "Fastly-Key: $FASTLY_API_TOKEN" https://api.fastly.com/service/$SERVICE_ID/version/$ACTIVE_VERSION/dictionary | jq -r --arg name $DICT_NAME '.[] | select(.name==$name) | .id')
+echo "curl -s -H 'Fastly-Key: $FASTLY_API_TOKEN' https://api.fastly.com/service/$SERVICE_ID/version/$ACTIVE_VERSION/dictionary | jq -r --arg name $DICT_NAME '.[] | select(.name==$name) | .id'"
+echo "Active Version: $ACTIVE_VERSION, Dict_ID: $DICT_ID"
+echo ""
+echo "Updating the $DICT_NAME dictionary (id: $DICT_ID) in service version $ACTIVE_VERSION"
+echo "The new value will be $duration"
+
+# --- Update dictionary item ---
+curl -s -X PUT -H "Fastly-Key: $FASTLY_API_TOKEN_GLOBAL" -H "Accept: application/json" -d "item_value=${duration}" "https://api.fastly.com/service/$SERVICE_ID/dictionary/$DICT_ID/item/$DICT_KEY" | jq

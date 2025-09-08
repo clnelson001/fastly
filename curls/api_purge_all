@@ -1,0 +1,6 @@
+#!/bin/zsh
+echo
+echo "Purging everything for serviceId: $SERVICE_ID"
+echo 'curl -s -X POST -H "Fastly-Key: $FASTLY_API_TOKEN_GLOBAL" -H "Accept: application/json" "https://api.fastly.com/service/$SERVICE_ID/purge_all" | jq'
+echo
+curl -s -X POST -H "Fastly-Key: $FASTLY_API_TOKEN_GLOBAL" -H "Accept: application/json" "https://api.fastly.com/service/$SERVICE_ID/purge_all" | jq
